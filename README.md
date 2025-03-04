@@ -1,0 +1,2 @@
+# nominoichi
+使わなくなったものをCryptoで販売するWebアプリ
