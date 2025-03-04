@@ -6,6 +6,7 @@ import { ReactNode } from 'react';
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react"
 // import { wagmiConfig } from './config/wagmiConfig';
 import { CartProvider } from "@/context/cart-context"
+import { Toaster } from "@/components/ui/toaster"
 
 // const queryClient = new QueryClient()
 
@@ -18,6 +19,7 @@ export function Providers(props: {
             {/* <WagmiProvider config={wagmiConfig}>
                 <QueryClientProvider client={queryClient}> */}
                     {props.children}
+                    <Toaster />
                 {/* </QueryClientProvider>
             </WagmiProvider> */}
         </CartProvider>

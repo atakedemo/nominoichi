@@ -20,10 +20,10 @@ export default function ProductCard({ product }: ProductCardProps) {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation()
     addToCart({ ...product, quantity: 1 })
-    toaster.create({
+    toaster.success({
       title: "Added to cart",
       description: `${product.name} has been added to your cart`,
-      duration: 3000,
+      duration: 2000,
     })
   }
 
