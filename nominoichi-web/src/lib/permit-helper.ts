@@ -99,7 +99,7 @@ export async function eip2612Permit({
       spender: spenderAddress,
       value,
       nonce,
-      deadline: BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'),
+      deadline: BigInt(Math.floor(Date.now() / 1000) + 30 * 60),
   }
   return {
       domain,

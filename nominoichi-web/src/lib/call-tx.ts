@@ -37,6 +37,24 @@ export async function Purchase(
         domain: signData.domain,
         message: signData.message
     })
+    console.log(signData.message.deadline)
     console.log(parseSignature(wrappedPermitSignature))
     console.log(wrappedPermitSignature)
+    const { request } = await client.simulateContract({
+        address: usdc.address,
+        abi: tokenAbi,
+        functionName: 'permit',
+        account: ownerAddress,
+        args: [
+            ownerAddress,
+            ORDER_NFT,
+            parseUnits("10", 6),
+            signData.message.deadline,
+            Number(parseSignature(wrappedPermitSignature).v),
+            parseSignature(wrappedPermitSignature).r,
+            parseSignature(wrappedPermitSignature).s
+        ]
+    })
+    const tx_response = await walletClient.writeContract(request);
+    console.log(tx_response)
 }
