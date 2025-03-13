@@ -3,7 +3,7 @@
 import { useAccount, useDisconnect, useEnsAvatar, useEnsName } from 'wagmi';
 import { Image, Button } from "@chakra-ui/react"
 import { WalletOptions } from '@/components/wallet-options';
-import { Purchase } from '@/lib/call-tx'
+import { Purchase, ListProduct } from '@/lib/call-tx'
 
 export default function Test() {
     const { isConnected, address } = useAccount();
@@ -11,8 +11,12 @@ export default function Test() {
     const { data: ensName } = useEnsName({ address })
     const { data: ensAvatar } = useEnsAvatar({ name: ensName! });
     
-    const callTx = async () => {
+    const callPurchaseTx = async () => {
         await Purchase(address as `0x${string}`)
+    }
+
+    const callListTx = async () => {
+      await ListProduct(address as `0x${string}`)
     }
 
     return (
@@ -26,7 +30,8 @@ export default function Test() {
             :
             <>
               <Button onClick={() => disconnect()}>Disconnect</Button>
-              <Button onClick={() => callTx()}>Call</Button>
+              <Button onClick={() => callPurchaseTx()}>Call</Button>
+              <Button onClick={() => callListTx()}>Call</Button>
               <div>
                   {ensAvatar && <Image src={ensAvatar} />}
                   {address && <div>{ensName ? `${ensName} (${address})` : address}</div>}
