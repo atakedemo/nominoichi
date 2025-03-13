@@ -6,43 +6,61 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IPermit} from "./interfaces/IPermit.sol";
 
 contract OrderNft is Initializable, ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable {
+    event Error(bytes errMessage);
+    event Permit(address owner, address spender, uint256 amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s);
     struct Product {
         uint256 tokenId;
         uint256 price; 
         uint8 status;
+        address owner;
     }
-    IERC20 public usdc;
+    address public usdcAddress;
 
     mapping(uint256 => Product) public products;
     mapping(uint256 => bool) public mintedTokens;
+    mapping(address => uint256) public withdrawableFee;
 
     //==========================
     //Logic
     //==========================
-    function initialize(address usdcAddress) public initializer {
+    function initialize(address tAddress) public initializer {
         __ERC721_init("OrderNft", "oNFT");
         __Ownable_init(msg.sender);
         __UUPSUpgradeable_init();
-        usdc = IERC20(usdcAddress);
+        usdcAddress = tAddress;
     }
 
-    function mint(address to, uint256 tokenId) public returns (uint256) {
+    function purchase(uint256 tokenId, uint256 deadline, uint8 v, bytes32 r, bytes32 s) public returns (uint256) {
         uint256 _fee = products[tokenId].price;
-        require(usdc.transferFrom(msg.sender, address(this), _fee), "USDC transfer failed");
-        _safeMint(to, tokenId);
-        return tokenId;
+        address _owner = products[tokenId].owner;
+        IPermit permitToken = IPermit(usdcAddress);
+        try permitToken.permit(msg.sender, address(this), _fee, deadline, v, r, s) {
+            _safeMint(msg.sender, tokenId);
+            IERC20 usdc = IERC20(usdcAddress);
+            usdc.transferFrom(msg.sender, address(this), _fee);
+            withdrawableFee[_owner] += _fee;
+            return tokenId;
+        } catch (bytes memory errMessage) {
+            emit Permit(msg.sender, address(this), _fee, deadline, v, r, s);
+            emit Error(errMessage);
+        }
     }
 
-    function withdraw(address to, uint256 amount) public onlyOwner {
-        usdc.transferFrom(address(this), to, amount);
+    function withdrawFee(address to, uint256 amount) public {
+        require(withdrawableFee[to] < amount, 'Withdrawable amount is too high');
+        IERC20 permitToken = IERC20(usdcAddress);
+        permitToken.transfer(to, amount);
     }
+
+    receive() external payable {}
 
     //==========================
     //Setter
     //==========================
-    function setProduct(
+    function listProduct(
         uint256 tokenId,
         uint256 price,
         uint8 status
@@ -51,7 +69,8 @@ contract OrderNft is Initializable, ERC721Upgradeable, OwnableUpgradeable, UUPSU
         products[tokenId] = Product({
             tokenId: tokenId,
             price: price,
-            status: status
+            status: status,
+            owner: msg.sender
         });
     }
 
@@ -66,7 +85,7 @@ contract OrderNft is Initializable, ERC721Upgradeable, OwnableUpgradeable, UUPSU
         uint256 tokenId,
         uint8 status
     ) external onlyOwner{
-         require(status < 3, "Invalid status");
+        require(status < 3, "Invalid status");
         products[tokenId].status = status;
     }
 

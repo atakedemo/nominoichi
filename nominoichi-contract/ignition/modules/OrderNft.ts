@@ -8,7 +8,6 @@ const LockModule = buildModule("OrderNftModule", (m) => {
     // value: lockedAmount,
   });
   m.call(OrderNft, "initialize", [USDC_ADDRESS]);
-  m.call(OrderNft, "mint", ["0x7b718D4Ce6ca83536660a314639559F3d3f6e9e3", 1]);
 
   return {OrderNft };
 });
