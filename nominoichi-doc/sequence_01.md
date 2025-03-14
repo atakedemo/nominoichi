@@ -54,18 +54,29 @@ sequenceDiagram
 sequenceDiagram
     actor User
     participant UA as User Agent
+    participant Wallet
+
     box Off-Chain<br/>(AWS)
         participant API as Purchace<br/>API
         participant DB
         participant Queue
     end
+    box On-Chain
+        participant Order
+    end
     
     User ->> UA: 住所・Email入力
     UA ->> UA: 住所・Email保存<br/>（Local Storage）
-    User ->> UA: 注文依頼
+    UA ->> Wallet: 署名要求
+    Wallet ->> User: 署名要求
+    User ->> Wallet: 同意＆署名
+    Wallet -->> UA: 署名返却
     UA ->> API: 発送API実行
+    API ->> API: 署名検証
+    API ->> Order: トランザクション確認
+    Order -->> API: 
     API ->> DB: ステータス更新
-    DB -->> API:  
+    DB -->> API: 
     API ->> Queue: タスク削除
     Queue -->> API:  
     API -->> UA: 処理結果返却
