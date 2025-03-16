@@ -1,17 +1,26 @@
 "use client"
 
 import type React from "react"
-
+import axios from 'axios';
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Field, Box, Button, Flex, Grid, Heading, Input, Stack, Text } from "@chakra-ui/react"
+import { useAccount, useConnect } from 'wagmi';
 import { useCart } from "@/context/cart-context"
 import { toaster } from "@/components/ui/toaster"
 
+
 export default function CheckoutPage() {
   const { cart, totalPrice, clearCart } = useCart()
+  const { isConnected, address } = useAccount()
+  const { connect, connectors } = useConnect();
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [postalCord, setPostalCord] = useState('')
+  const [rAddress, setRAddress] = useState('')
+  const [email, setEmail] = useState('')
+  const [phoneNum, setPhoneNum] = useState('')
+  const [name, setName] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -27,13 +36,34 @@ export default function CheckoutPage() {
     }
 
     setIsSubmitting(true)
-
-    // Simulate API call
-    setTimeout(() => {
-      clearCart()
-      setIsSubmitting(false)
-      router.push("/checkout/complete")
-    }, 1500)
+    try {
+      axios.post('https://llbwjcy034.execute-api.ap-northeast-1.amazonaws.com/test/order', {
+        "tokenId": "0",
+        "ownerAddress": "0x7b718D4Ce6ca83536660a314639559F3d3f6e9e3",
+        "consumerAddress": address,
+        "consumer": {
+            "postralCode": postalCord,
+            "rAddress": rAddress,
+            "email": email,
+            "phoneNum": phoneNum,
+            "name": name,
+        }
+      })
+      .then(function (response) {
+        console.log(response);
+        setIsSubmitting(false);
+        // clearCart()
+      })
+      .catch(function (error) {
+        console.log(error);
+        setIsSubmitting(false);
+        clearCart()
+      });
+      
+    }catch(e){
+      console.log(e);
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -49,47 +79,46 @@ export default function CheckoutPage() {
                   Shipping Information
                 </Heading>
                 <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={4}>
-                  <Field.Root required>
-                    <Field.Label>First Name</Field.Label>
-                    <Input placeholder="First Name" />
-                  </Field.Root>
-                  <Field.Root required>
-                    <Field.Label>Last Name</Field.Label>
-                    <Field.RequiredIndicator />
-                    <Input placeholder="Last Name" />
-                  </Field.Root>
-                  <Field.Root required gridColumn={{ md: "span 2" }}>
-                    <Field.Label>Email Address</Field.Label>
-                    <Field.RequiredIndicator />
-                    <Input type="email" placeholder="Email Address" />
-                  </Field.Root>
-                  {/* <Field.Root required gridColumn={{ md: "span 2" }}>
-                    <Field.Label>Address</Field.Label>
-                    <Input placeholder="Street Address" />
-                  </Field.Root>
-                  <Field.Root required>
-                    <Field.Label>City</Field.Label>
-                    <Input placeholder="City" />
-                  </Field.Root>
-                  <Field.Root required>
-                    <Field.Label>Postal Code</Field.Label>
-                    <Input placeholder="Postal Code" />
-                  </Field.Root>
-                  <Field.Root required>
-                    <Field.Label>Country</Field.Label>
-                    <Input placeholder="Country" />
-                  </Field.Root>
-                  <Field.Root required>
-                    <Field.Label>Phone</Field.Label>
-                    <Input type="tel" placeholder="Phone Number" />
-                  </Field.Root> */}
+                <Field.Root required>
+                  <Field.Label>Postal Code / 郵便番号<Field.RequiredIndicator /></Field.Label>
+                  <Input 
+                    value = {postalCord}
+                    onChange={(e) => setPostalCord(e.target.value)}
+                    placeholder="Postal Code" 
+                  />
+                </Field.Root>
+                <Field.Root required>
+                  <Field.Label>Address / 住所<Field.RequiredIndicator /></Field.Label>
+                  <Input 
+                    value = {rAddress}
+                    onChange={(e) => setRAddress(e.target.value)}
+                    placeholder="東京都千代田区1-1-1 xxビル1F"
+                  />
+                </Field.Root>
+                <Field.Root required gridColumn={{ md: "span 2" }}>
+                  <Field.Label>Email / メールアドレス<Field.RequiredIndicator /></Field.Label>
+                  <Input
+                    value = {email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    type="email" placeholder="abc@example.com"
+                  />
+                </Field.Root>
+                <Field.Root required>
+                  <Field.Label>Phone Number / 電話番号</Field.Label>
+                  <Input
+                    value = {phoneNum}
+                    onChange={(e) => setPhoneNum(e.target.value)}
+                    type="tel" placeholder="08012345678"
+                  />
+                </Field.Root>
+                <Field.Root>
+                  <Field.Label>Name / 氏名</Field.Label>
+                  <Input
+                    value = {name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="蚤市 太郎" />
+                </Field.Root>
                 </Grid>
-              </Box>
-
-              <Box>
-                <Heading size="md" mb={4}>
-                  Payment Method
-                </Heading>
               </Box>
             </Stack>
           </Box>
@@ -127,6 +156,18 @@ export default function CheckoutPage() {
               <Text>Total</Text>
               <Text>${totalPrice.toFixed(2)}</Text>
             </Flex>
+            {!isConnected && 
+              <Button
+                colorScheme="blue"
+                size="lg"
+                width="full"
+                type="button"
+                onClick={() => connect({connector: connectors[0]})}
+                mb={2} 
+              >
+                Connect
+              </Button>
+            }
             <Button
               colorScheme="blue"
               size="lg"
@@ -134,9 +175,12 @@ export default function CheckoutPage() {
               type="submit"
               loading={isSubmitting}
               loadingText="Processing"
+              disabled={!isConnected}
+              mb={2} 
             >
-              Complete Order
+              Order
             </Button>
+            
           </Box>
         </Flex>
       </form>
