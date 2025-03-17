@@ -47,7 +47,7 @@ export async function Purchase(
         functionName: 'purchase',
         account: ownerAddress,
         args: [
-            2,
+            4,
             signData.message.deadline,
             Number(parseSignature(wrappedPermitSignature).v),
             parseSignature(wrappedPermitSignature).r,

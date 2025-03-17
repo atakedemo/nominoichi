@@ -4,7 +4,21 @@ import type React from "react"
 import axios from 'axios';
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Field, Box, Button, Flex, Grid, Heading, Input, Stack, Text, Dialog, Portal } from "@chakra-ui/react"
+import { 
+  Field, 
+  Box, 
+  Button, 
+  Flex, 
+  Grid,
+  Heading, 
+  Input, 
+  Stack, 
+  Text, 
+  Dialog, 
+  Portal,
+  // ButtonGroup,
+  Steps
+} from "@chakra-ui/react"
 import { useAccount, useConnect } from 'wagmi';
 import { useCart } from "@/context/cart-context"
 import { toaster } from "@/components/ui/toaster"
@@ -18,8 +32,7 @@ export default function CheckoutPage() {
 
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isSubmitOnchain, setIsSubmitOnchain] = useState(false)
-  const [isSubmitOffchain, setIsSubmitOffchain] = useState(false)
+  const [txStep, setTxStep] = useState(0);
   const [postalCord, setPostalCord] = useState('')
   const [rAddress, setRAddress] = useState('')
   const [email, setEmail] = useState('')
@@ -40,8 +53,7 @@ export default function CheckoutPage() {
     }
 
     setIsSubmitting(true)
-    setIsSubmitOnchain(true)
-    setIsSubmitOffchain(false)
+    setTxStep(0)
 
     try {
       // Step1: Purchase OrderNFT
@@ -49,8 +61,7 @@ export default function CheckoutPage() {
       console.log(hash)
       const receipt = await publicClient.waitForTransactionReceipt({ hash })
       console.log(receipt)
-      setIsSubmitOnchain(false)
-      setIsSubmitOffchain(true)
+      setTxStep(1)
 
       // Step2: Send user-inpo to business owner
       axios.post('https://llbwjcy034.execute-api.ap-northeast-1.amazonaws.com/test/order', {
@@ -69,35 +80,50 @@ export default function CheckoutPage() {
       .then(function (response) {
         console.log(response)
         setIsSubmitting(false)
-        // clearCart()
-        setIsSubmitOnchain(false)
-        setIsSubmitOffchain(false)
+        setTxStep(2)
       })
       .catch(function (error) {
         console.log(error)
         setIsSubmitting(false)
-        setIsSubmitOnchain(false)
-        setIsSubmitOffchain(false)
         clearCart()
       });
       
     } catch(e){
       console.log(e)
       setIsSubmitting(false)
-      setIsSubmitOnchain(false)
-      setIsSubmitOffchain(false)
     }
   }
 
   const renderModalContent = () => {
-    if (!isSubmitOnchain && !isSubmitOffchain) {
-      return "Sending transaction...";
-    } else if (isSubmitOnchain && !isSubmitOffchain) {
-      return "Processing on-chain transaction...";
-    } else if (isSubmitOffchain) {
-      return "Processing off-chain transaction...";
-    }
-    return "";
+    return (
+      <Steps.Root defaultStep={1} count={2} step={txStep}>
+        <Steps.List>
+          <Steps.Item index={0} title="on-chain">
+            <Steps.Indicator />
+            <Box>
+              <Steps.Title>決済処理</Steps.Title>
+              <Steps.Description>オンチェーンのUSDCで決済</Steps.Description>
+            </Box>
+            <Steps.Separator />
+          </Steps.Item>
+          <Steps.Item index={1} title="off-chain">
+            <Steps.Indicator />
+            <Box>
+              <Steps.Title>発送情報送付</Steps.Title>
+              <Steps.Description>発送先を店舗に通知</Steps.Description>
+            </Box>
+            <Steps.Separator />
+          </Steps.Item>
+        </Steps.List>
+        <Steps.Content index={0}>
+          決済処理
+        </Steps.Content>
+        <Steps.Content index={1}>
+          送付先情報送付
+        </Steps.Content>
+        <Steps.CompletedContent>All steps are complete / 注文が完了しました</Steps.CompletedContent>
+      </Steps.Root>
+    )
   };
 
 
@@ -243,16 +269,11 @@ export default function CheckoutPage() {
                     <Dialog.Title>購入処理受付中</Dialog.Title>
                   </Dialog.Header>
                   <Dialog.Body>
-                    <p>
-                      Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                      Sed do eiusmod tempor incididunt ut labore et dolore magna
-                      aliqua.
-                    </p>
-                    <Text>{renderModalContent()}</Text>
+                    {renderModalContent()}
                   </Dialog.Body>
                   <Dialog.Footer>
                     <Dialog.ActionTrigger asChild>
-                      <Button variant="outline">Cancel</Button>
+                      <Button variant="outline">Close</Button>
                     </Dialog.ActionTrigger>
                   </Dialog.Footer>
                 </Dialog.Content>
