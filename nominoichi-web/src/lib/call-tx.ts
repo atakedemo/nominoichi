@@ -47,7 +47,7 @@ export async function Purchase(
         functionName: 'purchase',
         account: ownerAddress,
         args: [
-            0,
+            2,
             signData.message.deadline,
             Number(parseSignature(wrappedPermitSignature).v),
             parseSignature(wrappedPermitSignature).r,
@@ -55,7 +55,7 @@ export async function Purchase(
         ]
     })
     const tx_response = await walletClient.writeContract(request);
-    console.log(tx_response)
+    return tx_response;
 }
 
 export async function ListProduct(

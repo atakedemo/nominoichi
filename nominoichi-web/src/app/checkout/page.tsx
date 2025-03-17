@@ -4,25 +4,29 @@ import type React from "react"
 import axios from 'axios';
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Field, Box, Button, Flex, Grid, Heading, Input, Stack, Text } from "@chakra-ui/react"
+import { Field, Box, Button, Flex, Grid, Heading, Input, Stack, Text, Dialog, Portal } from "@chakra-ui/react"
 import { useAccount, useConnect } from 'wagmi';
 import { useCart } from "@/context/cart-context"
 import { toaster } from "@/components/ui/toaster"
-
+import { Purchase } from '@/lib/call-tx'
+import { publicClient } from '@/lib/client'
 
 export default function CheckoutPage() {
   const { cart, totalPrice, clearCart } = useCart()
   const { isConnected, address } = useAccount()
-  const { connect, connectors } = useConnect();
+  const { connect, connectors } = useConnect()
+
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSubmitOnchain, setIsSubmitOnchain] = useState(false)
+  const [isSubmitOffchain, setIsSubmitOffchain] = useState(false)
   const [postalCord, setPostalCord] = useState('')
   const [rAddress, setRAddress] = useState('')
   const [email, setEmail] = useState('')
   const [phoneNum, setPhoneNum] = useState('')
   const [name, setName] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault()
 
     if (cart.length === 0) {
@@ -36,7 +40,19 @@ export default function CheckoutPage() {
     }
 
     setIsSubmitting(true)
+    setIsSubmitOnchain(true)
+    setIsSubmitOffchain(false)
+
     try {
+      // Step1: Purchase OrderNFT
+      const hash = await Purchase(address as `0x${string}`);
+      console.log(hash)
+      const receipt = await publicClient.waitForTransactionReceipt({ hash })
+      console.log(receipt)
+      setIsSubmitOnchain(false)
+      setIsSubmitOffchain(true)
+
+      // Step2: Send user-inpo to business owner
       axios.post('https://llbwjcy034.execute-api.ap-northeast-1.amazonaws.com/test/order', {
         "tokenId": "0",
         "ownerAddress": "0x7b718D4Ce6ca83536660a314639559F3d3f6e9e3",
@@ -47,24 +63,43 @@ export default function CheckoutPage() {
             "email": email,
             "phoneNum": phoneNum,
             "name": name,
-        }
+        },
+        "tx_hash": hash,
       })
       .then(function (response) {
-        console.log(response);
-        setIsSubmitting(false);
+        console.log(response)
+        setIsSubmitting(false)
         // clearCart()
+        setIsSubmitOnchain(false)
+        setIsSubmitOffchain(false)
       })
       .catch(function (error) {
-        console.log(error);
-        setIsSubmitting(false);
+        console.log(error)
+        setIsSubmitting(false)
+        setIsSubmitOnchain(false)
+        setIsSubmitOffchain(false)
         clearCart()
       });
       
-    }catch(e){
-      console.log(e);
-      setIsSubmitting(false);
+    } catch(e){
+      console.log(e)
+      setIsSubmitting(false)
+      setIsSubmitOnchain(false)
+      setIsSubmitOffchain(false)
     }
   }
+
+  const renderModalContent = () => {
+    if (!isSubmitOnchain && !isSubmitOffchain) {
+      return "Sending transaction...";
+    } else if (isSubmitOnchain && !isSubmitOffchain) {
+      return "Processing on-chain transaction...";
+    } else if (isSubmitOffchain) {
+      return "Processing off-chain transaction...";
+    }
+    return "";
+  };
+
 
   return (
     <Box py={8}>
@@ -123,65 +158,107 @@ export default function CheckoutPage() {
             </Stack>
           </Box>
 
-          <Box
-            width={{ base: "full", lg: "300px" }}
-            p={6}
-            borderWidth="1px"
-            borderRadius="lg"
-            alignSelf={{ base: "center", lg: "start" }}
-            divideY="4px"
+          <Dialog.Root
+            placement="top"
+            motionPreset="slide-in-bottom"
           >
-            <Heading size="md" mb={4}>
-              Order Summary
-            </Heading>
-            <Stack spaceX={2} mb={4}>
-              {cart.map((item) => (
-                <Flex key={item.id} justify="space-between">
-                  <Text>
-                    {item.name} x {item.quantity}
-                  </Text>
-                  <Text>${(item.price * item.quantity).toFixed(2)}</Text>
-                </Flex>
-              ))}
-            </Stack>
-            <Flex justify="space-between" mb={2}>
-              <Text>Subtotal</Text>
-              <Text>${totalPrice.toFixed(2)}</Text>
-            </Flex>
-            <Flex justify="space-between" mb={2}>
-              <Text>Shipping</Text>
-              <Text>Free</Text>
-            </Flex>
-            <Flex justify="space-between" mb={4} fontWeight="bold">
-              <Text>Total</Text>
-              <Text>${totalPrice.toFixed(2)}</Text>
-            </Flex>
-            {!isConnected && 
+            <Box
+              width={{ base: "full", lg: "300px" }}
+              p={6}
+              borderWidth="1px"
+              borderRadius="lg"
+              alignSelf={{ base: "center", lg: "start" }}
+              divideY="4px"
+            >
+              <Heading size="md" mb={4}>
+                Order Summary
+              </Heading>
+              <Stack spaceX={2} mb={4}>
+                {cart.map((item) => (
+                  <Flex key={item.id} justify="space-between">
+                    <Text>
+                      {item.name} x {item.quantity}
+                    </Text>
+                    <Text>${(item.price * item.quantity).toFixed(2)}</Text>
+                  </Flex>
+                ))}
+              </Stack>
+              <Flex justify="space-between" mb={2}>
+                <Text>Subtotal / 小計</Text>
+                <Text>${totalPrice.toFixed(2)}</Text>
+              </Flex>
+              <Flex justify="space-between" mb={2}>
+                <Text>Shipping / 配送料</Text>
+                <Text>Free</Text>
+              </Flex>
+              <Flex justify="space-between" mb={4} fontWeight="bold">
+                <Text>Total / 合計</Text>
+                <Text>${totalPrice.toFixed(2)}</Text>
+              </Flex>
+              {!isConnected && 
+                <Button
+                  colorScheme="blue"
+                  size="lg"
+                  width="full"
+                  type="button"
+                  onClick={() => connect({connector: connectors[0]})}
+                  mb={2} 
+                >
+                  Connect
+                </Button>
+              }
               <Button
                 colorScheme="blue"
                 size="lg"
                 width="full"
-                type="button"
-                onClick={() => connect({connector: connectors[0]})}
+                type="submit"
+                loading={isSubmitting}
+                loadingText="Processing"
+                disabled={!isConnected}
                 mb={2} 
               >
-                Connect
+                Order
               </Button>
-            }
-            <Button
-              colorScheme="blue"
-              size="lg"
-              width="full"
-              type="submit"
-              loading={isSubmitting}
-              loadingText="Processing"
-              disabled={!isConnected}
-              mb={2} 
-            >
-              Order
-            </Button>
-            
-          </Box>
+              <Dialog.Trigger asChild>
+                <Button 
+                  colorScheme="blue"
+                  size="lg"
+                  width="full"
+                  type="submit"
+                  loading={isSubmitting}
+                  loadingText="Processing"
+                  disabled={!isConnected}
+                  mb={2} 
+                >
+                  Order (direct tx) 
+                </Button>
+              </Dialog.Trigger>
+            </Box>
+            <Portal>
+              {/*処理ステータス表示のポップアップ*/}
+              <Dialog.Backdrop />
+              <Dialog.Positioner>
+                <Dialog.Content>
+                  <Dialog.Header>
+                    <Dialog.Title>購入処理受付中</Dialog.Title>
+                  </Dialog.Header>
+                  <Dialog.Body>
+                    <p>
+                      Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                      Sed do eiusmod tempor incididunt ut labore et dolore magna
+                      aliqua.
+                    </p>
+                    <Text>{renderModalContent()}</Text>
+                  </Dialog.Body>
+                  <Dialog.Footer>
+                    <Dialog.ActionTrigger asChild>
+                      <Button variant="outline">Cancel</Button>
+                    </Dialog.ActionTrigger>
+                  </Dialog.Footer>
+                </Dialog.Content>
+              </Dialog.Positioner>
+            </Portal>
+          </Dialog.Root>
         </Flex>
       </form>
     </Box>

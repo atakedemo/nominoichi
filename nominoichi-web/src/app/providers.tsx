@@ -14,15 +14,19 @@ export function Providers(props: {
   children: ReactNode,
 }) {
   return (
-    <ChakraProvider value={defaultSystem}>
-        <CartProvider>
-            <WagmiProvider config={wagmiConfig}>
-                <QueryClientProvider client={queryClient}>
-                    {props.children}
-                    <Toaster />
-                </QueryClientProvider>
-            </WagmiProvider>
-        </CartProvider>
-    </ChakraProvider>
+    
+    <CartProvider>
+      <WagmiProvider config={wagmiConfig}>
+          <QueryClientProvider client={queryClient}>
+            <ChakraProvider value={defaultSystem}>
+            
+            {props.children}
+            <Toaster />
+            </ChakraProvider>
+            
+          </QueryClientProvider>
+      </WagmiProvider>
+    </CartProvider>
+    
   );
 }

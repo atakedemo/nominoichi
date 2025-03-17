@@ -15,11 +15,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <Providers>
-          {/* <Box minH="100vh"> */}
-            <Box as="main" maxW="1200px" mx="auto" px={4}>
-              {children}
-            </Box>
-          {/* </Box> */}
+          <Box>
+            {children}
+          </Box>
         </Providers>
       </body>
     </html>
