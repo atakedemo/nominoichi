@@ -16,8 +16,8 @@ import {
   Text, 
   Dialog, 
   Portal,
-  // ButtonGroup,
-  Steps
+  Spinner,
+  Steps,
 } from "@chakra-ui/react"
 import { useAccount, useConnect } from 'wagmi';
 import { useCart } from "@/context/cart-context"
@@ -29,8 +29,8 @@ export default function CheckoutPage() {
   const { cart, totalPrice, clearCart } = useCart()
   const { isConnected, address } = useAccount()
   const { connect, connectors } = useConnect()
-
   const router = useRouter()
+
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [txStep, setTxStep] = useState(0);
   const [postalCord, setPostalCord] = useState('')
@@ -99,7 +99,7 @@ export default function CheckoutPage() {
       <Steps.Root defaultStep={1} count={2} step={txStep}>
         <Steps.List>
           <Steps.Item index={0} title="on-chain">
-            <Steps.Indicator />
+            <Steps.Indicator mr={2} />
             <Box>
               <Steps.Title>決済処理</Steps.Title>
               <Steps.Description>オンチェーンのUSDCで決済</Steps.Description>
@@ -107,7 +107,7 @@ export default function CheckoutPage() {
             <Steps.Separator />
           </Steps.Item>
           <Steps.Item index={1} title="off-chain">
-            <Steps.Indicator />
+            <Steps.Indicator mr={2}/>
             <Box>
               <Steps.Title>発送情報送付</Steps.Title>
               <Steps.Description>発送先を店舗に通知</Steps.Description>
@@ -115,13 +115,6 @@ export default function CheckoutPage() {
             <Steps.Separator />
           </Steps.Item>
         </Steps.List>
-        <Steps.Content index={0}>
-          決済処理
-        </Steps.Content>
-        <Steps.Content index={1}>
-          送付先情報送付
-        </Steps.Content>
-        <Steps.CompletedContent>All steps are complete / 注文が完了しました</Steps.CompletedContent>
       </Steps.Root>
     )
   };
@@ -266,7 +259,10 @@ export default function CheckoutPage() {
               <Dialog.Positioner>
                 <Dialog.Content>
                   <Dialog.Header>
-                    <Dialog.Title>購入処理受付中</Dialog.Title>
+                      {
+                        isSubmitting ? <Dialog.Title><Spinner size="sm" mr={3}/>購入処理受付中</Dialog.Title>
+                        : <Dialog.Title>購入完了</Dialog.Title>
+                      }
                   </Dialog.Header>
                   <Dialog.Body>
                     {renderModalContent()}
@@ -275,6 +271,7 @@ export default function CheckoutPage() {
                     <Dialog.ActionTrigger asChild>
                       <Button variant="outline">Close</Button>
                     </Dialog.ActionTrigger>
+                    {!isSubmitting && <Button onClick={() => router.push("/")}>買い物を続ける</Button>}
                   </Dialog.Footer>
                 </Dialog.Content>
               </Dialog.Positioner>
