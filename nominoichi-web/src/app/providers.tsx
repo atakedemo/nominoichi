@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react"
 import { wagmiConfig } from './config';
 import { CartProvider } from "@/context/cart-context"
+import { UserProvider } from "@/context/user-context"
 import { Toaster } from "@/components/ui/toaster"
 
 const queryClient = new QueryClient()
@@ -19,11 +20,11 @@ export function Providers(props: {
       <WagmiProvider config={wagmiConfig}>
           <QueryClientProvider client={queryClient}>
             <ChakraProvider value={defaultSystem}>
-            
-            {props.children}
-            <Toaster />
+              <UserProvider>
+                {props.children}
+                <Toaster />
+              </UserProvider>
             </ChakraProvider>
-            
           </QueryClientProvider>
       </WagmiProvider>
     </CartProvider>
