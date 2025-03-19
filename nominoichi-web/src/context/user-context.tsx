@@ -53,6 +53,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         setUserInfo(tempInfo);
         setIsLogin(true)
         console.log(tempInfo)
+        console.log(isLogin)
         localStorage.setItem("userInfo", JSON.stringify(tempInfo))
     }
 

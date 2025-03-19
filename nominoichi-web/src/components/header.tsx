@@ -1,11 +1,71 @@
 "use client"
 
-import { Box, Flex, Text, Link, Button } from "@chakra-ui/react";
+import { Box, Flex, Text, Link, Button, Icon } from "@chakra-ui/react";
 import NextLink from "next/link";
 import { useUserInfo } from "@/context/user-context"
+import { useAccount, useConnect, useDisconnect } from 'wagmi'
+import { UserRound } from "lucide-react"
 
-export default function Header (){
-    const {login } = useUserInfo()
+export default function Header () {
+    const {login, logout, isLogin } = useUserInfo()
+    const { isConnected, address } = useAccount()
+    const { connectAsync, connectors } = useConnect()
+    const { disconnect } = useDisconnect()
+
+    const signIn = async() => {
+        if(!isConnected) {
+            await connectAsync({connector: connectors[0]})
+            login()
+        } else {
+            login()
+        }
+    }
+
+    const signOut = async() => {
+        logout()
+        disconnect()
+    }
+
+    const accountMenu = () => {
+        if(!isLogin) {
+            return (
+                <Button 
+                    variant="outline" 
+                    color="white" 
+                    borderColor="white" 
+                    size="sm" 
+                    ml={4}
+                    onClick={()=> signIn()}
+                >
+                    Sign In
+                </Button>
+            )
+        } else {
+            return (
+                <>
+                <Button 
+                    variant="outline" 
+                    color="white" 
+                    borderColor="white" 
+                    size="sm"
+                    onClick={()=> signOut()}
+                    mr={2}
+                >
+                    Sign Out
+                </Button>
+                <Button
+                    variant="outline" 
+                    color="white" 
+                    borderColor="white"
+                    size="sm"
+                >   
+                    <Icon as={UserRound} />
+                    {address?.substring(0, 8) + "…"}
+                </Button>
+                </>
+            )
+        }
+    }
 
     return (
         <>
@@ -20,22 +80,10 @@ export default function Header (){
 
                     {/* ナビゲーションリンク */}
                     <Flex alignItems="center">
-                        <Link as={NextLink} href="/about" color="white" px={2}>
-                            About
+                        <Link as={NextLink} href="/cart" color="white" px={2}>
+                            Cart
                         </Link>
-                        <Link as={NextLink} href="/contact" color="white" px={2}>
-                            Contact
-                        </Link>
-                        <Button 
-                            variant="outline" 
-                            color="white" 
-                            borderColor="white" 
-                            size="sm" 
-                            ml={4}
-                            onClick={()=> login()}
-                        >
-                            Sign In
-                        </Button>
+                        {accountMenu()}
                     </Flex>
                 </Flex>
             </Box>
