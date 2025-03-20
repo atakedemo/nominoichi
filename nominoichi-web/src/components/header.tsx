@@ -1,25 +1,18 @@
 "use client"
 
-import { Box, Flex, Text, Link, Button, Icon } from "@chakra-ui/react";
+import { Box, Flex, Text, Link, Button, Icon, Dialog, Portal, Heading, Badge } from "@chakra-ui/react";
 import NextLink from "next/link";
 import { useUserInfo } from "@/context/user-context"
+import { useCart } from "@/context/cart-context"
 import { useAccount, useConnect, useDisconnect } from 'wagmi'
-import { UserRound } from "lucide-react"
+import { UserRound, ShoppingCart } from "lucide-react"
 
 export default function Header () {
     const {login, logout, isLogin } = useUserInfo()
     const { isConnected, address } = useAccount()
-    const { connectAsync, connectors } = useConnect()
+    const { connect, connectors } = useConnect()
     const { disconnect } = useDisconnect()
-
-    const signIn = async() => {
-        if(!isConnected) {
-            await connectAsync({connector: connectors[0]})
-            login()
-        } else {
-            login()
-        }
-    }
+    const { cartCount } = useCart()
 
     const signOut = async() => {
         logout()
@@ -29,39 +22,81 @@ export default function Header () {
     const accountMenu = () => {
         if(!isLogin) {
             return (
-                <Button 
-                    variant="outline" 
-                    color="white" 
-                    borderColor="white" 
-                    size="sm" 
-                    ml={4}
-                    onClick={()=> signIn()}
-                >
-                    Sign In
-                </Button>
+                <Dialog.Root>
+                    <Dialog.Trigger asChild>
+                        <Button 
+                            variant="outline" 
+                            color="white" 
+                            borderColor="white" 
+                            size="sm" 
+                            ml={4}
+                        >
+                            Sign In
+                        </Button>
+                    </Dialog.Trigger>
+                    <Portal>
+                        <Dialog.Backdrop />
+                        <Dialog.Positioner>
+                            <Dialog.Content>
+                                <Dialog.Header>
+                                <Dialog.Title>決済の有効化</Dialog.Title>
+                                </Dialog.Header>
+                                <Dialog.Body>
+                                    <Box mb={4}>
+                                        <Heading size="md" mb={2}>Step1: ウォレット有効化</Heading>
+                                        <Button size="sm" ml={4}　disabled={isConnected}　onClick={() => connect({connector: connectors[0]})}>
+                                            Connect Wallet
+                                        </Button>
+                                    </Box>
+                                    <Heading size="md" mb={2}>Step2: サインイン</Heading>
+                                    <Button　size="sm" ml={4}　disabled={!isConnected || isLogin }　onClick={()=> login()}>
+                                        Sign In
+                                    </Button>
+                                </Dialog.Body>
+                                <Dialog.Footer>
+                                    <Dialog.ActionTrigger asChild>
+                                        <Button variant="outline">Cancel</Button>
+                                    </Dialog.ActionTrigger>
+                                </Dialog.Footer>
+                            </Dialog.Content>
+                        </Dialog.Positioner>
+                    </Portal>
+                </Dialog.Root>
             )
         } else {
             return (
                 <>
-                <Button 
-                    variant="outline" 
-                    color="white" 
-                    borderColor="white" 
-                    size="sm"
-                    onClick={()=> signOut()}
-                    mr={2}
-                >
-                    Sign Out
-                </Button>
-                <Button
-                    variant="outline" 
-                    color="white" 
-                    borderColor="white"
-                    size="sm"
-                >   
-                    <Icon as={UserRound} />
-                    {address?.substring(0, 8) + "…"}
-                </Button>
+                    <Dialog.Root>
+                        <Button variant="outline" color="white" borderColor="white" size="sm"onClick={()=> signOut()} mr={2}>
+                            Sign Out
+                        </Button>
+                        <Dialog.Trigger asChild>
+                            <Button variant="outline" color="white" borderColor="white" size="sm">   
+                                <Icon as={UserRound} />
+                                {address?.substring(0, 8) + "…"}
+                            </Button>
+                        </Dialog.Trigger>
+                        <Portal>
+                            <Dialog.Backdrop />
+                            <Dialog.Positioner>
+                                <Dialog.Content>
+                                    <Dialog.Header>
+                                    <Dialog.Title>アカウント情報</Dialog.Title>
+                                    </Dialog.Header>
+                                    <Dialog.Body>
+                                        <Heading size="md">ウォレット</Heading>
+                                        <Text>アドレス：{address}</Text>
+                                        <Text>USDC残高：　</Text>
+                                    </Dialog.Body>
+                                    <Dialog.Footer>
+                                        <Dialog.ActionTrigger asChild>
+                                            <Button variant="outline">Cancel</Button>
+                                        </Dialog.ActionTrigger>
+                                    </Dialog.Footer>
+                                </Dialog.Content>
+                            </Dialog.Positioner>
+                        </Portal>
+                    </Dialog.Root>
                 </>
             )
         }
@@ -80,8 +115,8 @@ export default function Header () {
 
                     {/* ナビゲーションリンク */}
                     <Flex alignItems="center">
-                        <Link as={NextLink} href="/cart" color="white" px={2}>
-                            Cart
+                        <Link as={NextLink} href="/cart" color="white">
+                            <Icon as={ShoppingCart} /><Badge mr={2}>{cartCount}</Badge>
                         </Link>
                         {accountMenu()}
                     </Flex>
