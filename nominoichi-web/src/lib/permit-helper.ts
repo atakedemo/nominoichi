@@ -61,6 +61,7 @@ export const tokenAbi = [
     type: 'function',
   }
 ] as const
+
 export async function eip2612Permit({
   token,
   chain,
@@ -75,13 +76,13 @@ export async function eip2612Permit({
   value: bigint
 }) {
   const [nonce, name, version] = await Promise.all([
-      token.read.nonces([ownerAddress]),
-      token.read.name(),
+      await token.read.nonces([ownerAddress]),
+      await token.read.name(),
       await token.read.version(),
   ])
   const domain: TypedDataDomain = {
       name,
-      version,
+      version: version,
       chainId: chain.id,
       verifyingContract: token.address,
   }
@@ -99,8 +100,12 @@ export async function eip2612Permit({
       spender: spenderAddress,
       value,
       nonce,
-      deadline: BigInt(Math.floor(Date.now() / 1000) + 30 * 60),
+      deadline: BigInt(Math.floor(Date.now() / 1000) + 15 * 60),
   }
+  console.log('domain')
+  console.log(domain)
+  console.log('message')
+  console.log(message)
   return {
       domain,
       types,

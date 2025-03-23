@@ -56,7 +56,7 @@ export default function CheckoutPage() {
     setTxStep(0)
 
     try {
-      // Step1: Purchase OrderNFT
+      // Step1: Purchase OrderToken
       const hash = await Purchase(address as `0x${string}`);
       console.log(hash)
       const receipt = await publicClient.waitForTransactionReceipt({ hash })

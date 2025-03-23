@@ -14,45 +14,18 @@ export const purchaseNftAbi = [
     "inputs": [
       {
         "internalType": "address",
-        "name": "implementation",
-        "type": "address"
-      }
-    ],
-    "name": "ERC1967InvalidImplementation",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "ERC1967NonPayable",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
         "name": "sender",
         "type": "address"
       },
       {
         "internalType": "uint256",
-        "name": "tokenId",
+        "name": "balance",
         "type": "uint256"
       },
       {
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      }
-    ],
-    "name": "ERC721IncorrectOwner",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "operator",
-        "type": "address"
+        "internalType": "uint256",
+        "name": "needed",
+        "type": "uint256"
       },
       {
         "internalType": "uint256",
@@ -60,7 +33,7 @@ export const purchaseNftAbi = [
         "type": "uint256"
       }
     ],
-    "name": "ERC721InsufficientApproval",
+    "name": "ERC1155InsufficientBalance",
     "type": "error"
   },
   {
@@ -71,7 +44,23 @@ export const purchaseNftAbi = [
         "type": "address"
       }
     ],
-    "name": "ERC721InvalidApprover",
+    "name": "ERC1155InvalidApprover",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "idsLength",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "valuesLength",
+        "type": "uint256"
+      }
+    ],
+    "name": "ERC1155InvalidArrayLength",
     "type": "error"
   },
   {
@@ -82,18 +71,7 @@ export const purchaseNftAbi = [
         "type": "address"
       }
     ],
-    "name": "ERC721InvalidOperator",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      }
-    ],
-    "name": "ERC721InvalidOwner",
+    "name": "ERC1155InvalidOperator",
     "type": "error"
   },
   {
@@ -104,7 +82,7 @@ export const purchaseNftAbi = [
         "type": "address"
       }
     ],
-    "name": "ERC721InvalidReceiver",
+    "name": "ERC1155InvalidReceiver",
     "type": "error"
   },
   {
@@ -115,18 +93,39 @@ export const purchaseNftAbi = [
         "type": "address"
       }
     ],
-    "name": "ERC721InvalidSender",
+    "name": "ERC1155InvalidSender",
     "type": "error"
   },
   {
     "inputs": [
       {
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
+        "internalType": "address",
+        "name": "operator",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
       }
     ],
-    "name": "ERC721NonexistentToken",
+    "name": "ERC1155MissingApprovalForAll",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "implementation",
+        "type": "address"
+      }
+    ],
+    "name": "ERC1967InvalidImplementation",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ERC1967NonPayable",
     "type": "error"
   },
   {
@@ -188,32 +187,7 @@ export const purchaseNftAbi = [
       {
         "indexed": true,
         "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "approved",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      }
-    ],
-    "name": "Approval",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "owner",
+        "name": "account",
         "type": "address"
       },
       {
@@ -330,6 +304,43 @@ export const purchaseNftAbi = [
     "anonymous": false,
     "inputs": [
       {
+        "indexed": false,
+        "internalType": "address",
+        "name": "consumer",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256[]",
+        "name": "tokenIds",
+        "type": "uint256[]"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256[]",
+        "name": "amounts",
+        "type": "uint256[]"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "feeTotal",
+        "type": "uint256"
+      }
+    ],
+    "name": "Purchase",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "operator",
+        "type": "address"
+      },
+      {
         "indexed": true,
         "internalType": "address",
         "name": "from",
@@ -342,13 +353,75 @@ export const purchaseNftAbi = [
         "type": "address"
       },
       {
+        "indexed": false,
+        "internalType": "uint256[]",
+        "name": "ids",
+        "type": "uint256[]"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256[]",
+        "name": "values",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "TransferBatch",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
         "indexed": true,
+        "internalType": "address",
+        "name": "operator",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "indexed": false,
         "internalType": "uint256",
-        "name": "tokenId",
+        "name": "id",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "value",
         "type": "uint256"
       }
     ],
-    "name": "Transfer",
+    "name": "TransferSingle",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "value",
+        "type": "string"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      }
+    ],
+    "name": "URI",
     "type": "event"
   },
   {
@@ -380,17 +453,17 @@ export const purchaseNftAbi = [
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "to",
-        "type": "address"
-      },
-      {
         "internalType": "uint256",
         "name": "tokenId",
         "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
       }
     ],
-    "name": "approve",
+    "name": "addStock",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -399,8 +472,13 @@ export const purchaseNftAbi = [
     "inputs": [
       {
         "internalType": "address",
-        "name": "owner",
+        "name": "account",
         "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
       }
     ],
     "name": "balanceOf",
@@ -417,17 +495,22 @@ export const purchaseNftAbi = [
   {
     "inputs": [
       {
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
+        "internalType": "address[]",
+        "name": "accounts",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "ids",
+        "type": "uint256[]"
       }
     ],
-    "name": "getApproved",
+    "name": "balanceOfBatch",
     "outputs": [
       {
-        "internalType": "address",
+        "internalType": "uint256[]",
         "name": "",
-        "type": "address"
+        "type": "uint256[]"
       }
     ],
     "stateMutability": "view",
@@ -456,6 +539,11 @@ export const purchaseNftAbi = [
             "type": "uint256"
           },
           {
+            "internalType": "uint256",
+            "name": "stock",
+            "type": "uint256"
+          },
+          {
             "internalType": "uint8",
             "name": "status",
             "type": "uint8"
@@ -466,7 +554,7 @@ export const purchaseNftAbi = [
             "type": "address"
           }
         ],
-        "internalType": "struct OrderNft.Product",
+        "internalType": "struct OrderToken.Product",
         "name": "",
         "type": "tuple"
       }
@@ -491,7 +579,7 @@ export const purchaseNftAbi = [
     "inputs": [
       {
         "internalType": "address",
-        "name": "owner",
+        "name": "account",
         "type": "address"
       },
       {
@@ -521,6 +609,11 @@ export const purchaseNftAbi = [
       {
         "internalType": "uint256",
         "name": "price",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "stock",
         "type": "uint256"
       },
       {
@@ -555,39 +648,7 @@ export const purchaseNftAbi = [
   },
   {
     "inputs": [],
-    "name": "name",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "owner",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      }
-    ],
-    "name": "ownerOf",
     "outputs": [
       {
         "internalType": "address",
@@ -616,6 +677,11 @@ export const purchaseNftAbi = [
       {
         "internalType": "uint256",
         "name": "price",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "stock",
         "type": "uint256"
       },
       {
@@ -648,8 +714,18 @@ export const purchaseNftAbi = [
   {
     "inputs": [
       {
+        "internalType": "uint256[]",
+        "name": "tokenIds",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "amounts",
+        "type": "uint256[]"
+      },
+      {
         "internalType": "uint256",
-        "name": "tokenId",
+        "name": "permitFee",
         "type": "uint256"
       },
       {
@@ -685,6 +761,24 @@ export const purchaseNftAbi = [
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "reduceStock",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "renounceOwnership",
     "outputs": [],
@@ -704,12 +798,22 @@ export const purchaseNftAbi = [
         "type": "address"
       },
       {
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
+        "internalType": "uint256[]",
+        "name": "ids",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "values",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "bytes",
+        "name": "data",
+        "type": "bytes"
       }
     ],
-    "name": "safeTransferFrom",
+    "name": "safeBatchTransferFrom",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -728,7 +832,12 @@ export const purchaseNftAbi = [
       },
       {
         "internalType": "uint256",
-        "name": "tokenId",
+        "name": "id",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "value",
         "type": "uint256"
       },
       {
@@ -781,24 +890,6 @@ export const purchaseNftAbi = [
   {
     "inputs": [
       {
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint8",
-        "name": "status",
-        "type": "uint8"
-      }
-    ],
-    "name": "setProductStatus",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "bytes4",
         "name": "interfaceId",
         "type": "bytes4"
@@ -816,61 +907,6 @@ export const purchaseNftAbi = [
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "symbol",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      }
-    ],
-    "name": "tokenURI",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "from",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "to",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      }
-    ],
-    "name": "transferFrom",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "address",
@@ -879,6 +915,24 @@ export const purchaseNftAbi = [
       }
     ],
     "name": "transferOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint8",
+        "name": "status",
+        "type": "uint8"
+      }
+    ],
+    "name": "updateStatus",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -899,6 +953,25 @@ export const purchaseNftAbi = [
     "name": "upgradeToAndCall",
     "outputs": [],
     "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "uri",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
