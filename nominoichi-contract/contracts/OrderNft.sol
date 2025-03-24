@@ -11,6 +11,7 @@ import {IPermit} from "./interfaces/IPermit.sol";
 contract OrderToken is Initializable, ERC1155Upgradeable, OwnableUpgradeable, UUPSUpgradeable {
     event Error(bytes errMessage);
     event Permit(address owner, address spender, uint256 amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s);
+    event Permit(address owner, address spender, uint256 amount, uint256 deadline, bytes signature);
     event Purchase(address consumer, uint256[] tokenIds, uint256[] amounts, uint256 feeTotal);
 
     struct Product {
@@ -64,6 +65,38 @@ contract OrderToken is Initializable, ERC1155Upgradeable, OwnableUpgradeable, UU
             return _feeTotal;
         } catch (bytes memory errMessage) {
             emit Permit(msg.sender, address(this), _feeTotal, deadline, v, r, s);
+            emit Error(errMessage);
+            return 0;
+        }
+    }
+
+    function purchase(
+        uint256[] memory tokenIds, 
+        uint256[] memory amounts, 
+        uint256 permitFee,
+        uint256 deadline, 
+        bytes memory signature
+    ) public returns (uint256) {
+        uint256 _feeTotal = 0;
+        for (uint256 i = 0; i < tokenIds.length; ++i) {
+            uint256 _id = tokenIds[i];
+            uint256 _fee = products[_id].price;
+            _feeTotal += _fee;
+
+            address _owner = products[_id].owner;
+            withdrawableFee[_owner] += _fee;
+        }
+        
+        IPermit permitToken = IPermit(usdcAddress);
+        try permitToken.permit(msg.sender, address(this), permitFee, deadline, signature) {
+            _mintBatch(msg.sender, tokenIds, amounts, '0x0');
+            IERC20 usdc = IERC20(usdcAddress);
+            usdc.transferFrom(msg.sender, address(this), _feeTotal);
+            emit Purchase(msg.sender, tokenIds, amounts, _feeTotal);
+            
+            return _feeTotal;
+        } catch (bytes memory errMessage) {
+            emit Permit(msg.sender, address(this), _feeTotal, deadline, signature);
             emit Error(errMessage);
             return 0;
         }

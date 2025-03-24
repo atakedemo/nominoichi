@@ -25,7 +25,7 @@ pragma solidity ^0.8.24;
  */
 interface IPermit {
     /// @dev EOA wallet signatures should be packed in the order of r, s, v.
-    // function permit(address owner, address spender, uint256 value, uint256 deadline, bytes memory signature) external;
+    function permit(address owner, address spender, uint256 value, uint256 deadline, bytes memory signature) external;
     function permit(address owner, address spender, uint256 value, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external;
 
     function nonces(address owner) external view returns (uint256);
