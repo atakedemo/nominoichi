@@ -6,6 +6,10 @@ const TABLE_NAME = process.env.TABLE_NAME!;
 
 const client = new DynamoDBClient({});
 const ddbDocClient = DynamoDBDocumentClient.from(client);
+const corsHeaders = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "Content-Type",
+};
 
 export const lambdaHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     try {
@@ -19,6 +23,7 @@ export const lambdaHandler = async (event: APIGatewayProxyEvent): Promise<APIGat
         if (!tokenId  === undefined) {
             return {
                 statusCode: 400,
+                headers: corsHeaders,
                 body: JSON.stringify({ message: 'データ項目を指定してください' }),
             };
         }
@@ -36,12 +41,14 @@ export const lambdaHandler = async (event: APIGatewayProxyEvent): Promise<APIGat
 
         return {
             statusCode: 200,
+            headers: corsHeaders,
             body: JSON.stringify({ message: "Item updated", item: updateResult.Attributes }),
         };
     } catch (err) {
         console.log(err);
         return {
             statusCode: 500,
+            headers: corsHeaders,
             body: JSON.stringify({
                 message: 'some error happened',
             }),

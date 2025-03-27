@@ -52,6 +52,32 @@ export class NominoichiBackendAwsStack extends cdk.Stack {
     });
     tableOrder.grantReadData(lambdaOrderGet);
 
+    // /calltx/purchase/ POST
+    const lambdaCalltxPurchasePost = new NodejsFunction(this, "lambdaCalltxPurchase", {
+      entry: "lambda/calltx/purchase/post/index.ts",
+      handler: "lambdaHandler",
+      runtime: Runtime.NODEJS_20_X,
+      environment: {
+        // API_KEY: 'ju44cxYihhRCK0MxO0xcgvkVLrvuxB5J',
+        CHAIN: 'base-sepolia',
+        PAYMASTER_ADDRESS: '0x31BE08D380A21fc740883c0BC434FcFc88740b58',
+        USDC_ADDRESS: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+        ORDER_TOKEN_ADDRESS: '0x833b5c43eBe0Bf4ACD25C9d4A7080E4216631C37',
+        BUNDLER_URL: 'https://public.pimlico.io/v2/84532/rpc?apikey=pim_XXjokYanBppsJQYkW2uNSo',
+        PRIVATE_KEY: ''
+      },
+    });
+
+    // /calltx/userop-gasprice/ GET
+    const lambdaCalltxGaspriceGet = new NodejsFunction(this, "lambdaCalltxGaspriceGet", {
+      entry: "lambda/calltx/userop-gasprice/get/index.ts",
+      handler: "lambdaHandler",
+      runtime: Runtime.NODEJS_20_X,
+      // environment: {
+      //   API_KEY: 'ju44cxYihhRCK0MxO0xcgvkVLrvuxB5J',
+      // },
+    });
+
     // API Gateway
     const apiGw = new apigateway.RestApi(this, 'NominoichiApi', { 
       cloudWatchRole: false,
@@ -72,6 +98,23 @@ export class NominoichiBackendAwsStack extends cdk.Stack {
     apiGwOrder.addMethod(
       'POST',
       new apigateway.LambdaIntegration(lambdaOrderPost)
+    );
+
+    // /calltx
+    const apiGwCalltx = apiGw.root.addResource('calltx');
+
+    // /calltx/purchase
+    const apiGwCalltxPurchase = apiGwCalltx.addResource('purchase');
+    apiGwCalltxPurchase.addMethod(
+      'POST',
+      new apigateway.LambdaIntegration(lambdaCalltxPurchasePost)
+    );
+
+    // /calltx/userop-gasprice
+    const apiGwCalltxGasprice = apiGwCalltx.addResource('userop-gasprice');
+    apiGwCalltxGasprice.addMethod(
+      'GET',
+      new apigateway.LambdaIntegration(lambdaCalltxGaspriceGet)
     );
   }
 }

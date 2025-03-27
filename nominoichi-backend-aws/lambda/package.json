@@ -15,7 +15,9 @@
     "@aws-sdk/lib-dynamodb": "^3.767.0",
     "aws-cdk-lib": "^2.183.0",
     "axios": "^1.8.3",
-    "constructs": "^10.4.2"
+    "constructs": "^10.4.2",
+    "permissionless": "^0.2.38",
+    "viem": "^2.23.9"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.147",
