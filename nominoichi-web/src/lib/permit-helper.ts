@@ -1,4 +1,4 @@
-import { Address, Chain, TypedDataDomain, getContract } from 'viem'
+import { Address, Chain, TypedDataDomain, getContract, maxUint256 } from 'viem'
 
 export const eip2612Abi = [
   {
@@ -76,9 +76,9 @@ export async function eip2612Permit({
   value: bigint
 }) {
   const [nonce, name, version] = await Promise.all([
-      await token.read.nonces([ownerAddress]),
-      await token.read.name(),
-      await token.read.version(),
+      token.read.nonces([ownerAddress]),
+      token.read.name(),
+      token.read.version(),
   ])
   const domain: TypedDataDomain = {
       name,
@@ -102,10 +102,56 @@ export async function eip2612Permit({
       nonce,
       deadline: BigInt(Math.floor(Date.now() / 1000) + 15 * 60),
   }
-  console.log('domain')
-  console.log(domain)
-  console.log('message')
-  console.log(message)
+  console.log('message is ...', message)
+  return {
+      domain,
+      types,
+      message,
+  }
+}
+
+export async function eip2612PermitPaymaster({
+  token,
+  chain,
+  ownerAddress,
+  spenderAddress,
+  value,
+}: {
+  token: ReturnType<typeof getContract>
+  chain: Chain
+  ownerAddress: Address
+  spenderAddress: Address
+  value: bigint
+}) {
+  const [nonce, name, version] = await Promise.all([
+    token.read.nonces([ownerAddress]),
+    token.read.name(),
+    token.read.version(),
+  ])
+  const domain: TypedDataDomain = {
+    name,
+    version: version,
+    chainId: chain.id,
+    verifyingContract: token.address,
+  }
+  const types = {
+      Permit: [
+          { name: 'owner', type: 'address' },
+          { name: 'spender', type: 'address' },
+          { name: 'value', type: 'uint256' },
+          { name: 'nonce', type: 'uint256' },
+          { name: 'deadline', type: 'uint256' },
+      ],
+  }
+  const message = {
+      owner: ownerAddress,
+      spender: spenderAddress,
+      value,
+      nonce,
+      deadline: BigInt("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"),
+  }
+  console.log('domain is ...', domain)
+  console.log('message is ...', message)
   return {
       domain,
       types,

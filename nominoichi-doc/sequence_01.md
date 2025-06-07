@@ -11,7 +11,6 @@ sequenceDiagram
     box Off-Chain<br/>(AWS)
         participant Bundler as Bundler<br/>API
         participant DB
-        participant Queue
     end
     box On-Chain
         participant Entry Point
@@ -37,8 +36,6 @@ sequenceDiagram
 
     Bundler ->> Bundler: Tx結果判定
     alt Tx成功 
-        Bundler ->> Queue: 更新タスク作成
-        Queue -->> Bundler: 
         Bundler ->> DB: ステータス更新<br/>（タスクID含む）
         DB -->> Bundler: 
         Bundler -->> UA: 住所入力依頼

@@ -22,7 +22,7 @@ import {
 import { useAccount, useConnect } from 'wagmi';
 import { useCart } from "@/context/cart-context"
 import { toaster } from "@/components/ui/toaster"
-import { Purchase } from '@/lib/call-tx'
+import { PurchaseWithPaymaster } from '@/lib/call-tx'
 import { publicClient } from '@/lib/client'
 
 export default function CheckoutPage() {
@@ -57,10 +57,11 @@ export default function CheckoutPage() {
 
     try {
       // Step1: Purchase OrderToken
-      const hash = await Purchase(address as `0x${string}`);
-      console.log(hash)
-      const receipt = await publicClient.waitForTransactionReceipt({ hash })
-      console.log(receipt)
+      // const hash = await Purchase(address as `0x${string}`);
+      // console.log(hash)
+      // const receipt = await publicClient.waitForTransactionReceipt({ hash })
+      // console.log(receipt)
+      await PurchaseWithPaymaster(address as `0x${string}`)
       setTxStep(1)
 
       // Step2: Send user-inpo to business owner

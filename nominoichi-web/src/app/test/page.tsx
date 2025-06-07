@@ -1,9 +1,9 @@
 "use client"
 
 import { useAccount, useDisconnect, useEnsAvatar, useEnsName } from 'wagmi';
-import { Image, Button } from "@chakra-ui/react"
+import { Image, Button, Text } from "@chakra-ui/react"
 import { WalletOptions } from '@/components/wallet-options';
-import { Purchase, ListProduct } from '@/lib/call-tx'
+import { Purchase, ListProduct, PurchaseWithPaymaster, PurchaseMeta, getSmartAccountBalance } from '@/lib/call-tx'
 
 export default function Test() {
     const { isConnected, address } = useAccount();
@@ -17,6 +17,14 @@ export default function Test() {
 
     const callListTx = async () => {
       await ListProduct(address as `0x${string}`)
+    }
+
+    const callPurchaseWithPaymaster = async () => {
+      await PurchaseWithPaymaster(address as `0x${string}`)
+    }
+
+    const callPurchaseMetaTx = async () => {
+      PurchaseMeta(address as `0x${string}`)
     }
 
     return (
@@ -35,6 +43,12 @@ export default function Test() {
               <div>
                   {ensAvatar && <Image src={ensAvatar} />}
                   {address && <div>{ensName ? `${ensName} (${address})` : address}</div>}
+              </div>
+              <Button onClick={() => callPurchaseWithPaymaster()}>Purchase with paymaster</Button>
+              <Button onClick={() => getSmartAccountBalance()}>Balance Check</Button>
+              <div>
+                <Text>With Meta-Tx</Text>
+                <Button onClick={() => callPurchaseMetaTx()}>Purchase with meta-tx</Button>
               </div>
             </> 
           }

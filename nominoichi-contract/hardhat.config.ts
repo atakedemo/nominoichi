@@ -10,7 +10,8 @@ const config: HardhatUserConfig = {
   solidity: "0.8.28",
   networks: {
     baseSepolia: {
-      url: `https://base-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY}`,
+      // url: `https://base-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY}`,
+      url: 'https://base-sepolia.infura.io/v3/3b80b23e15584592bda83505abbeace1',
       accounts: [PRIVATE_KEY],
     },
   },

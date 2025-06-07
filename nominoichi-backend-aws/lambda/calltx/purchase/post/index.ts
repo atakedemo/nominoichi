@@ -14,8 +14,7 @@ import { createBundlerClient } from 'viem/account-abstraction'
 import { baseSepolia } from 'viem/chains'
 import { privateKeyToAccount } from 'viem/accounts'
 import { toEcdsaKernelSmartAccount } from 'permissionless/accounts'
-import { eip2612Abi, tokenAbi, orderTokenAbi } from './abi'
-// import axios from 'axios';
+import { eip2612Abi, tokenAbi, orderTokenAbi } from '../../../lib/abi'
 
 const API_KEY = process.env.API_KEY!;
 const CHAIN = process.env.CHAIN!;

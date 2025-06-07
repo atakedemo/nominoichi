@@ -4,6 +4,9 @@ import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import { Runtime } from "aws-cdk-lib/aws-lambda";
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 export class NominoichiBackendAwsStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -28,6 +31,8 @@ export class NominoichiBackendAwsStack extends cdk.Stack {
 
     //==========================
     // API (API Gateway, Lambda)
+    //==========================
+
     //==========================
     // Lambda
     // /order POST
@@ -58,14 +63,26 @@ export class NominoichiBackendAwsStack extends cdk.Stack {
       handler: "lambdaHandler",
       runtime: Runtime.NODEJS_20_X,
       environment: {
-        // API_KEY: 'ju44cxYihhRCK0MxO0xcgvkVLrvuxB5J',
         CHAIN: 'base-sepolia',
         PAYMASTER_ADDRESS: '0x31BE08D380A21fc740883c0BC434FcFc88740b58',
         USDC_ADDRESS: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
-        ORDER_TOKEN_ADDRESS: '0x833b5c43eBe0Bf4ACD25C9d4A7080E4216631C37',
+        ORDER_TOKEN_ADDRESS: process.env.ORDER_TOKEN_ADDRESS as string,
         BUNDLER_URL: 'https://public.pimlico.io/v2/84532/rpc?apikey=pim_XXjokYanBppsJQYkW2uNSo',
-        PRIVATE_KEY: ''
+        PRIVATE_KEY: process.env.PRIVATE_KEY as string
       },
+    });
+
+    // /calltx/purchase-meta/ POST
+    const lambdaCalltxPurchasemetaPost = new NodejsFunction(this, "lambdaCalltxPurchasemetaPost", {
+      entry: "lambda/calltx/purchase-meta/post/index.ts",
+      handler: "lambdaHandler",
+      runtime: Runtime.NODEJS_20_X,
+      environment: {
+        ORDER_TOKEN_ADDRESS: process.env.ORDER_TOKEN_ADDRESS as string,
+        PRIVATE_KEY: process.env.PRIVATE_KEY as string,
+        RPC_URL :process.env.RPC_URL as string,
+      },
+      timeout: cdk.Duration.seconds(150)
     });
 
     // /calltx/userop-gasprice/ GET
@@ -73,11 +90,9 @@ export class NominoichiBackendAwsStack extends cdk.Stack {
       entry: "lambda/calltx/userop-gasprice/get/index.ts",
       handler: "lambdaHandler",
       runtime: Runtime.NODEJS_20_X,
-      // environment: {
-      //   API_KEY: 'ju44cxYihhRCK0MxO0xcgvkVLrvuxB5J',
-      // },
     });
 
+    //==========================
     // API Gateway
     const apiGw = new apigateway.RestApi(this, 'NominoichiApi', { 
       cloudWatchRole: false,
@@ -108,6 +123,13 @@ export class NominoichiBackendAwsStack extends cdk.Stack {
     apiGwCalltxPurchase.addMethod(
       'POST',
       new apigateway.LambdaIntegration(lambdaCalltxPurchasePost)
+    );
+
+    // /calltx/purchase-meta/ POST
+    const apiGwCalltxPurchasemeta = apiGwCalltx.addResource('purchase-meta');
+    apiGwCalltxPurchasemeta.addMethod(
+      'POST',
+      new apigateway.LambdaIntegration(lambdaCalltxPurchasemetaPost)
     );
 
     // /calltx/userop-gasprice

@@ -102,6 +102,39 @@ contract OrderToken is Initializable, ERC1155Upgradeable, OwnableUpgradeable, UU
         }
     }
 
+    function purchase(
+        uint256[] memory tokenIds, 
+        uint256[] memory amounts, 
+        uint256 permitFee,
+        uint256 deadline, 
+        bytes memory signature,
+        address consumer
+    ) public returns (uint256) {
+        uint256 _feeTotal = 0;
+        for (uint256 i = 0; i < tokenIds.length; ++i) {
+            uint256 _id = tokenIds[i];
+            uint256 _fee = products[_id].price;
+            _feeTotal += _fee;
+
+            address _owner = products[_id].owner;
+            withdrawableFee[_owner] += _fee;
+        }
+        
+        IPermit permitToken = IPermit(usdcAddress);
+        try permitToken.permit(consumer, address(this), permitFee, deadline, signature) {
+            _mintBatch(consumer, tokenIds, amounts, '0x0');
+            IERC20 usdc = IERC20(usdcAddress);
+            usdc.transferFrom(consumer, address(this), _feeTotal);
+            emit Purchase(consumer, tokenIds, amounts, _feeTotal);
+            
+            return _feeTotal;
+        } catch (bytes memory errMessage) {
+            emit Permit(consumer, address(this), _feeTotal, deadline, signature);
+            emit Error(errMessage);
+            return 0;
+        }
+    }
+
     function withdrawFee(address to, uint256 amount) public {
         require(withdrawableFee[to] < amount, 'Withdrawable amount is too high');
         IERC20 permitToken = IERC20(usdcAddress);
