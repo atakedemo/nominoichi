@@ -17,7 +17,8 @@
     "axios": "^1.8.3",
     "constructs": "^10.4.2",
     "permissionless": "^0.2.38",
-    "viem": "^2.23.9"
+    "viem": "^2.23.9",
+    "x402": "^0.3.7"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.147",

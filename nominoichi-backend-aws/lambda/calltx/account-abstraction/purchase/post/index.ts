@@ -2,7 +2,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { createPublicClient, createWalletClient, http, custom ,parseSignature } from 'viem'
 import { baseSepolia } from 'viem/chains'
 import { privateKeyToAccount } from 'viem/accounts'
-import { orderTokenAbi } from '../../../lib/abi'
+import { orderTokenAbi } from '../../../../lib/abi'
 
 const ORDER_TOKEN_ADDRESS = process.env.ORDER_TOKEN_ADDRESS as `0x${string}`;
 const PRIVATE_KEY = process.env.PRIVATE_KEY as `0x${string}`;

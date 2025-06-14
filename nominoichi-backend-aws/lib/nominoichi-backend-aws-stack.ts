@@ -59,7 +59,7 @@ export class NominoichiBackendAwsStack extends cdk.Stack {
 
     // /calltx/purchase/ POST
     const lambdaCalltxPurchasePost = new NodejsFunction(this, "lambdaCalltxPurchase", {
-      entry: "lambda/calltx/purchase/post/index.ts",
+      entry: "lambda/calltx/x402/purchase/index.ts",
       handler: "lambdaHandler",
       runtime: Runtime.NODEJS_20_X,
       environment: {
@@ -74,7 +74,7 @@ export class NominoichiBackendAwsStack extends cdk.Stack {
 
     // /calltx/purchase-meta/ POST
     const lambdaCalltxPurchasemetaPost = new NodejsFunction(this, "lambdaCalltxPurchasemetaPost", {
-      entry: "lambda/calltx/purchase-meta/post/index.ts",
+      entry: "lambda/calltx/account-abstraction/purchase/index.ts",
       handler: "lambdaHandler",
       runtime: Runtime.NODEJS_20_X,
       environment: {
@@ -87,8 +87,15 @@ export class NominoichiBackendAwsStack extends cdk.Stack {
 
     // /calltx/userop-gasprice/ GET
     const lambdaCalltxGaspriceGet = new NodejsFunction(this, "lambdaCalltxGaspriceGet", {
-      entry: "lambda/calltx/userop-gasprice/get/index.ts",
+      entry: "lambda/calltx/account-abstraction/userop-gasprice/index.ts",
       handler: "lambdaHandler",
+      runtime: Runtime.NODEJS_20_X,
+    });
+
+    // /calltx/x402/purchase POST
+    const lambdaX402PurchasePost = new NodejsFunction(this, "lambdaX402PurchasePost", {
+      entry: "lambda/calltx/x402/purchase/post/index.ts",
+      handler: "handler",
       runtime: Runtime.NODEJS_20_X,
     });
 
@@ -137,6 +144,13 @@ export class NominoichiBackendAwsStack extends cdk.Stack {
     apiGwCalltxGasprice.addMethod(
       'GET',
       new apigateway.LambdaIntegration(lambdaCalltxGaspriceGet)
+    );
+
+    // /calltx/x402/purchase
+    const apiGwX402Purchase = apiGwCalltx.addResource('x402').addResource('purchase');
+    apiGwX402Purchase.addMethod(
+      'POST',
+      new apigateway.LambdaIntegration(lambdaX402PurchasePost)
     );
   }
 }
