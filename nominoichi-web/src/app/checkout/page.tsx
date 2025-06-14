@@ -24,6 +24,7 @@ import { useCart } from "@/context/cart-context"
 import { toaster } from "@/components/ui/toaster"
 import { PurchaseWithPaymaster } from '@/lib/call-tx'
 import { publicClient } from '@/lib/client'
+import { API_ENDPOINTS } from '@/app/config/api'
 
 export default function CheckoutPage() {
   const { cart, totalPrice, clearCart } = useCart()
@@ -57,15 +58,11 @@ export default function CheckoutPage() {
 
     try {
       // Step1: Purchase OrderToken
-      // const hash = await Purchase(address as `0x${string}`);
-      // console.log(hash)
-      // const receipt = await publicClient.waitForTransactionReceipt({ hash })
-      // console.log(receipt)
-      await PurchaseWithPaymaster(address as `0x${string}`)
+      const userOpHash = await PurchaseWithPaymaster(address as `0x${string}`)
       setTxStep(1)
 
       // Step2: Send user-inpo to business owner
-      axios.post('https://llbwjcy034.execute-api.ap-northeast-1.amazonaws.com/test/order', {
+      const response = await axios.post(API_ENDPOINTS.ORDER, {
         "tokenId": "0",
         "ownerAddress": "0x7b718D4Ce6ca83536660a314639559F3d3f6e9e3",
         "consumerAddress": address,
@@ -76,19 +73,11 @@ export default function CheckoutPage() {
             "phoneNum": phoneNum,
             "name": name,
         },
-        "tx_hash": hash,
+        "tx_hash": userOpHash,
       })
-      .then(function (response) {
-        console.log(response)
-        setIsSubmitting(false)
-        setTxStep(2)
-      })
-      .catch(function (error) {
-        console.log(error)
-        setIsSubmitting(false)
-        clearCart()
-      });
-      
+      console.log(response)
+      setIsSubmitting(false)
+      setTxStep(2)
     } catch(e){
       console.log(e)
       setIsSubmitting(false)

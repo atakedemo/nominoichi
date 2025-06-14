@@ -18,6 +18,7 @@ import { baseSepolia } from 'viem/chains'
 import { eip2612Permit, eip2612PermitPaymaster, tokenAbi} from '@/lib/permit-helper'
 import { orderTokenAbi } from '@/lib/purchase-helper'
 import axios from 'axios'
+import { API_ENDPOINTS } from '@/app/config/api'
 
 const BASE_SEPOLIA_USDC = process.env.NEXT_PUBLIC_BASE_SEPOLIA_USDC as `0x${string}`;
 const ORDER_TOKEN = process.env.NEXT_PUBLIC_ORDER_TOKEN as `0x${string}`;
@@ -112,7 +113,7 @@ export async function PurchaseAa(
 // With Paymaster
 export async function PurchaseWithPaymaster(
     ownerAddress: `0x${string}`
-){     
+): Promise<`0x${string}`> {     
     const permitFee = parseUnits("1", 6);
     const client = createPublicClient({
         chain: baseSepolia,
@@ -208,7 +209,7 @@ export async function PurchaseWithPaymaster(
     );
     console.log('additionalGasCharge is ...', additionalGasCharge)
 
-    const feesRes = await axios.get("https://llbwjcy034.execute-api.ap-northeast-1.amazonaws.com/test/calltx/userop-gasprice")
+    const feesRes = await axios.get(API_ENDPOINTS.USEROP_GAS_PRICE)
     console.log(feesRes)
     const maxFeePerGas = hexToBigInt(feesRes.data.maxFeePerGas)
     const maxPriorityFeePerGas = hexToBigInt(feesRes.data.maxPriorityFeePerGas)
@@ -277,6 +278,7 @@ export async function PurchaseWithPaymaster(
     })
     
     console.log(userOpReceipt)
+    return userOpHash
 }
 
 export async function getSmartAccountBalance(){
@@ -302,7 +304,7 @@ export async function getSmartAccountBalance(){
 
 export async function PurchaseMeta(
     ownerAddress: `0x${string}`
-) {
+): Promise<`0x${string}`> {
     const walletClient = createWalletClient({
         chain: baseSepolia,
         transport: custom(window.ethereum!)
@@ -339,7 +341,7 @@ export async function PurchaseMeta(
     console.log(permitSignature)
 
     const apiRes = await axios.post(
-        'https://llbwjcy034.execute-api.ap-northeast-1.amazonaws.com/test/calltx/purchase-meta',
+        API_ENDPOINTS.PURCHASE,
         {
             chainId: 84532,
             permitSignature: permitSignature,
@@ -356,4 +358,20 @@ export async function PurchaseMeta(
         }
     )
     console.log(apiRes)
+    return apiRes.data.transactionHash
+}
+
+export type TransactionMethod = 'aa' | 'x402'
+
+export async function purchase(
+    ownerAddress: `0x${string}`,
+    method: TransactionMethod = 'aa'
+): Promise<`0x${string}`> {
+    if (method === 'aa') {
+        return await PurchaseWithPaymaster(ownerAddress);
+    } else if (method === 'x402') {
+        return await PurchaseMeta(ownerAddress);
+    } else {
+        throw new Error(`Unknown transaction method: ${method}`);
+    }
 }
